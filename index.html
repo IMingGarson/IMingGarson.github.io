@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://threejs.org/build/three.js"></script>
+    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://threejs.org/examples/js/loaders/PLYLoader.js"></script>
+</head>
+<script>
+let mesh, renderer, scene, camera, controls, x, y, axesHelper;
+let object;
+let CURRENT_PAGE = 0;
+let HAVE_MET_PAGE_2 = false;
+const PAGE_CONTENT = [
+    `<div id="page-1">
+        <video autoplay muted playsinline loop contorls id="page-1-video">
+            <source src="./videos/page-1.mp4" type="video/mp4">
+            <!-- TODO: 補聲音 -->
+        </video>
+    </div>`,
+    `<div id="page-2">
+        <video autoplay muted playsinline loop contorls id="page-2-video">
+            <source src="./videos/page-2.mp4" type="video/mp4">
+            <!-- TODO: 補聲音 -->
+        </video>
+    </div>`,
+    `<div id="page-3">
+        <div id="center-object" class="center-object"></div>
+        <div class="gif-row">
+            <img src="./images/third-page-01.jpg" onclick="rotateModel(1)" />
+            <img src="./images/third-page-02.jpg" onclick="rotateModel(2)" />
+            <img src="./images/third-page-03.jpg" onclick="rotateModel(3)" />
+            <img src="./images/third-page-04.jpg" onclick="rotateModel(4)" />
+            <img src="./images/third-page-05.jpg" onclick="rotateModel(5)" />
+            <img src="./images/third-page-06.jpg" onclick="rotateModel(6)" />
+        </div>
+    </div>`,
+    `<div id="page-4">
+        <video autoplay muted playsinline contorls id="page-4-video">
+            <source src="./videos/page-1.mp4" type="video/mp4">
+            <!-- TODO: 補聲音 -->
+        </video>
+    </div>`,
+];
+
+window.onload = function() {
+    onSkip(CURRENT_PAGE);
+}
+
+function onSkip(sequence) {
+    CURRENT_PAGE += sequence;
+    if (CURRENT_PAGE <= 0) {
+        CURRENT_PAGE = 0;
+    }
+    if (CURRENT_PAGE >= 3) {
+        CURRENT_PAGE = 3;
+    }
+    
+    /*
+    * 因為 SPA 重新 Render 第二頁的時候會重新載入模型
+    * 所以這裡寫一個邏輯：如果已經 Render 過 3D 模型那一頁，之後切換頁面的時候就把 3D 模型那頁隱藏
+    * 之後再回到 3D 模型頁就不用重新 Render 模型了
+    */
+    if (CURRENT_PAGE == 2) {
+        document.getElementById('model-section').style.display = 'inline-block';
+        document.getElementById('page-section').style.display = 'none';
+        if (!HAVE_MET_PAGE_2) {
+            document.getElementById('model-section').innerHTML = PAGE_CONTENT[CURRENT_PAGE];
+            display3DModel();
+        }
+        HAVE_MET_PAGE_2 = true;
+    } else {
+        document.getElementById('page-section').style.display = 'flex';
+        document.getElementById('model-section').style.display = 'none';
+        document.getElementById('page-section').innerHTML = PAGE_CONTENT[CURRENT_PAGE];
+    }
+
+    // Back在第二頁、第三頁和第四頁，Skip在第一頁和第二頁。
+    if (CURRENT_PAGE == 0) {
+        document.getElementById('backBtn').style.display = 'none';
+        document.getElementById('skipBtn').style.display = 'block';
+        document.getElementById('infoBtn').style.display = 'none';
+        document.getElementById('icon').style.display = 'block';
+    } else if (CURRENT_PAGE == 1) {
+        document.getElementById('backBtn').style.display = 'block';
+        document.getElementById('skipBtn').style.display = 'block';
+        document.getElementById('infoBtn').style.display = 'none';
+        document.getElementById('icon').style.display = 'none';
+    } else if (CURRENT_PAGE == 2) {
+        document.getElementById('backBtn').style.display = 'block';
+        document.getElementById('skipBtn').style.display = 'none';
+        document.getElementById('infoBtn').style.display = 'block';
+        document.getElementById('icon').style.display = 'none';
+    } else if (CURRENT_PAGE == 3) {
+        document.getElementById('backBtn').style.display = 'block';
+        document.getElementById('skipBtn').style.display = 'none';
+        document.getElementById('infoBtn').style.display = 'none';
+        document.getElementById('icon').style.display = 'none';
+
+        // 第四頁先播放 page-1.mp4，放完之後重複撥放 page-4.mp4
+        const videoElement = document.querySelector('video');
+        videoElement.addEventListener('ended', function(event) {
+            const video = document.getElementById('page-4');
+            video.innerHTML = `
+                <video autoplay muted playsinline loop contorls id="page-4-video">
+                    <source src="./videos/page-4.mp4" type="video/mp4">
+                    <!-- TODO: 補聲音 -->
+                </video>
+            `;
+        });
+    }
+
+    const loadingBar = document.getElementById('loader-bar');
+    if (CURRENT_PAGE == 0 || CURRENT_PAGE == 1) {
+        loadingBar.innerHTML = '';
+        let innerBar = '';
+        for (let i = 1; i <= 87; i++) {
+            let sec = i + 0.5;
+            let col = i + 3;
+            innerBar += `<div class="block-meter" style="grid-column: ${col}; animation: blinky1 ${sec}s linear forwards;"></div>`;
+        }
+        loadingBar.innerHTML = innerBar;
+    } else {
+        loadingBar.innerHTML = '';
+    }
+
+    return true;
+}
+
+function display3DModel() {
+    renderer = new THREE.WebGLRenderer();
+    const objectSection = document.getElementById('center-object');
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    renderer.setSize(w, h);
+    objectSection.appendChild(renderer.domElement);
+    // scene
+    scene = new THREE.Scene();
+    // camera
+    camera = new THREE.PerspectiveCamera( 45, w / h, 0.1, 1000 );
+    camera.position.z = 75;
+    // controls
+    // controls = new THREE.OrbitControls(camera, renderer.domElement);
+    axesHelper = new THREE.AxesHelper(10);
+    const colors = axesHelper.geometry.attributes.color;
+    colors.setXYZ( 0, 1, 0, 0 ); // index, R, G, B
+    colors.setXYZ( 1, 1, 0, 0 ); // red -> x
+    colors.setXYZ( 2, 0, 1, 0 );
+    colors.setXYZ( 3, 0, 1, 0 ); // green -> y
+    colors.setXYZ( 4, 0, 0, 1 );
+    colors.setXYZ( 5, 0, 0, 1 ); // blue -> z
+    // 座標軸
+    // scene.add( axesHelper );
+
+    // light
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(0, 0, 50);
+    scene.add(light);
+    
+    // Model loader
+    const plyloader = new THREE.PLYLoader();
+    plyloader.load(
+        './models/Station.ply',
+        function (geometry) {
+            geometry.center();
+            const material = new THREE.PointsMaterial( { size: 0.1, vertexColors: true } );
+            object = new THREE.Points(geometry, material)
+            object.scale.set( 3.5, 3.5, 3.5);
+            object.rotation.setFromVector3(new THREE.Vector3( 0, -Math.PI / 2, 0));
+            scene.add(object)
+        },
+        (xhr) => {
+            console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+        },
+        (error) => {
+            console.log(error)
+        }
+    )
+    animate();
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+}
+
+function rotateModel(sequence) {
+    switch (sequence) {
+        case 1:
+            // -180
+            object.rotation.setFromVector3(new THREE.Vector3( 0, -Math.PI / 2, 0));
+            break;
+        case 2:
+            // -120
+            object.rotation.setFromVector3(new THREE.Vector3( 0, -Math.PI / 3, 0));
+            break;
+        case 3:
+            // -60
+            object.rotation.setFromVector3(new THREE.Vector3( 0, -Math.PI / 6, 0));
+            break;
+        case 3:
+            // -0
+            object.rotation.setFromVector3(new THREE.Vector3( 0, 0, 0));
+            break;
+        case 4:
+            // 60
+            object.rotation.setFromVector3(new THREE.Vector3( 0, Math.PI / 6, 0));
+            break;
+        case 5:
+            // 120
+            object.rotation.setFromVector3(new THREE.Vector3( 0, Math.PI / 3, 0));
+            break;   
+        case 6:
+            // 180
+            object.rotation.setFromVector3(new THREE.Vector3( 0, Math.PI / 2, 0));
+            break;   
+        default:
+            break;
+    }
+    return true;
+}
+
+</script>
+<body>
+    <div id="container">
+        <div id="icon"><img src="./images/headphone.png" /></div>
+        <button id="backBtn" class="backBtn" onclick="onSkip(-1);" style="display:none;">BACK</button>
+        <div id="loader-bar" class="loader-bar"></div>
+        <button id="skipBtn" class="skipBtn" onclick="onSkip(1);">SKIP</button>
+        <button id="infoBtn" class="skipBtn" onclick="onSkip(1);" style="display:none;">INFO</button>
+        <div id="page-section" class="center"></div>
+        <div id="model-section" class="center"></div>
+    </div>
+</body>
+</html>

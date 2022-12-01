@@ -1,0 +1,122 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Lato", sans-serif;
+}
+
+#container {
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    overflow: hidden;
+}
+
+#progress {
+    position: absolute;
+    left: 0.25vw;
+    right: 0.25vw;
+    bottom: 0.85vw;
+    z-index: 999;
+    margin: 0 auto;
+    width: 93vw;
+}
+
+.center {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: inline-block;
+}
+
+.center-object {
+    display: block;
+    margin: 0 auto;
+}
+
+.gif-row {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.gif-row img {
+    display: flex;
+    width: calc(100vw / 6);
+    margin: 0 !important;
+}
+
+video {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    top: 0;
+    left: 0;
+}
+
+.skipBtn {
+    position: absolute;
+    right: 2.5vw;
+    bottom: 0.65vw;
+    z-index: 9;
+    font-size: 18px;
+    border: none;
+    background: transparent;
+    color: #a4a4a4;
+    cursor: pointer;
+}
+
+.backBtn {
+    position: absolute;
+    left: 2.5vw;
+    bottom: 0.65vw;
+    z-index: 9;
+    font-size: 18px;
+    border: none;
+    background: transparent;
+    color: #a4a4a4;
+    cursor: pointer;
+}
+
+.loader-bar {
+    width: 90vw;
+    display: grid;
+    position: absolute;
+    left: 3.75vw;
+    bottom: 0.85vw;
+    z-index: 999;
+    margin: 0 auto;
+    grid-template-columns: repeat(90, 1vw);
+    grid-template-rows: repeat(1, 1vw);
+}
+
+.block-meter {
+    border-radius: 15px;
+    width: 0.5vw;
+    height: 0.5vw;
+    background-color: rgb(155, 155, 155);
+}
+
+.block-meter {
+    grid-row: 3/5;
+    grid-column: 4;
+    opacity: 0;
+}
+
+#icon img {
+    width: 1.5vw;
+    position: absolute;
+    left: 3.5vw;
+    bottom: 0.65vw;
+    z-index: 9;
+}
+  
+@keyframes blinky1 {
+    99% {opacity: 0;}
+    100% {opacity: 1;}
+}
