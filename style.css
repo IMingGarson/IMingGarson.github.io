@@ -111,12 +111,18 @@ video {
 #icon img {
     width: 1.5vw;
     position: absolute;
-    left: 3.5vw;
+    left: 2.75vw;
     bottom: 0.65vw;
-    z-index: 9;
+    z-index: 8;
+    cursor: pointer;
 }
   
 @keyframes blinky1 {
     99% {opacity: 0;}
     100% {opacity: 1;}
+}
+
+iframe{
+    width: 100vw;
+    height: 100vh;
 }
