@@ -54,17 +54,16 @@ html, body {
 video {
     width: 100vw;
     height: 100vh;
-    object-fit: cover;
     top: 0;
     left: 0;
 }
 
 .skipBtn {
     position: absolute;
-    right: 2.5vw;
+    right: 2.25vw;
     bottom: 0.65vw;
     z-index: 9;
-    font-size: 18px;
+    font-size: 14px;
     border: none;
     background: transparent;
     color: #a4a4a4;
@@ -73,10 +72,10 @@ video {
 
 .backBtn {
     position: absolute;
-    left: 2.5vw;
+    left: 2.25vw;
     bottom: 0.65vw;
     z-index: 9;
-    font-size: 18px;
+    font-size: 14px;
     border: none;
     background: transparent;
     color: #a4a4a4;
@@ -109,7 +108,7 @@ video {
 }
 
 #icon img {
-    width: 1.5vw;
+    width: 1vw;
     position: absolute;
     left: 2.75vw;
     bottom: 0.65vw;
