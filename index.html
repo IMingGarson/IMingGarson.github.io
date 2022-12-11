@@ -12,6 +12,10 @@ let mesh, renderer, scene, camera, controls, x, y, axesHelper;
 let object;
 let CURRENT_PAGE = 0;
 let HAVE_MET_PAGE_2 = false;
+let START = null;
+let firstClickPlay = true;
+const starttime = 29;
+const endtime = 78;
 const PAGE_CONTENT = [
     `<div id="page-1">
         <video loop id="page-1-video">
@@ -35,12 +39,9 @@ const PAGE_CONTENT = [
         </div>
     </div>`,
     `<div id="page-4">
-        <video autoplay playsinline id="page-4-video">
-            <source src="./videos/page-4-1.mp4" type="video/mp4">
+        <video autoplay playsinline loop id="page-4-video">
+            <source src="./videos/page-4.mp4" type="video/mp4">
         </video>
-        <audio autoplay playsinline id="page-4-audio">
-            <source src="./videos/music/page-4-1.mp3" type="video/mp3">
-        </audio>
     </div>`,
 ];
 
@@ -49,21 +50,63 @@ window.onload = function() {
 }
 
 function playAudio() {
-    document.getElementById(`page-1-video`).play();
+    if (!START) {
+        START = new Date();
+    }
     const loadingBar = document.getElementById('loader-bar');
-    loadingBar.style.display = 'grid';
-    if (CURRENT_PAGE == 0 || CURRENT_PAGE == 1) {
-        loadingBar.innerHTML = '';
-        let innerBar = '';
+    const icon = document.getElementById('icon-img');
+    const currentImg = icon.src.split("/").slice(-1);
+    const allDots = document.getElementsByClassName("block-meter");
+    const SECOND = (new Date().getTime() - START.getTime()) / 1000;
+    if (currentImg == 'play.png') {
+        icon.src = './images/pause.png';
+        document.getElementById(`page-1-video`).play();
         for (let i = 1; i <= 87; i++) {
             let sec = i + 0.5;
             let col = i + 3;
-            innerBar += `<div class="block-meter" style="grid-column: ${col}; animation: blinky1 ${sec}s linear forwards;"></div>`;
+            if (!firstClickPlay) {
+                if (sec <= SECOND) {
+                    innerBar += `<div 
+                        class="block-meter" 
+                        style="grid-column: ${col}; opacity: 1 !important;">
+                    </div>`;
+                } else {
+                    sec = parseInt(SECOND) + 0.5;
+                    innerBar += `<div 
+                        class="block-meter"
+                        style="grid-column: ${col}; animation: blinky1 ${sec}s linear forwards;">
+                    </div>`;
+                }
+            } else {
+                innerBar += `<div 
+                    class="block-meter"
+                    style="grid-column: ${col}; animation: blinky1 ${sec}s linear forwards;">
+                </div>`;
+                firstClickPlay = !firstClickPlay;
+            }
         }
-        loadingBar.innerHTML = innerBar;
     } else {
-        loadingBar.innerHTML = '';
+        icon.src = './images/play.png';
+        document.getElementById(`page-1-video`).pause();
+        for (let i = 1; i <= 87; i++) {
+            let sec = i + 0.5;
+            let col = i + 3;
+            if (sec <= SECOND) {
+                innerBar += `<div 
+                    class="block-meter" 
+                    style="grid-column: ${col}; opacity: 1 !important;">
+                </div>`;
+            } else {
+                innerBar += `<div 
+                    class="block-meter"
+                    style="grid-column: ${col};">
+                </div>`;
+            }
+        }
     }
+    loadingBar.innerHTML = '';
+    loadingBar.innerHTML = innerBar;
+    loadingBar.style.display = 'grid';
 }
 
 function onSkip(sequence) {
@@ -127,17 +170,13 @@ function onSkip(sequence) {
         document.getElementById('skipBtn').style.display = 'none';
         document.getElementById('infoBtn').style.display = 'none';
         document.getElementById('icon').style.display = 'none';
-
-        // 第四頁先播放 page-1.mp4，放完之後重複撥放 page-4.mp4
-        const videoElement = document.querySelector('video');
-        videoElement.addEventListener('ended', function(event) {
-            const video = document.getElementById('page-4');
-            video.innerHTML = `
-                <video autoplay playsinline loop id="page-4-video">
-                    <source src="./videos/page-4-2.mp4" type="video/mp4">
-                </video>
-            `;
-        });
+        // 第四頁先播放要重複撥放 29秒開始到結束的影片片段
+        const video = document.querySelector('video');
+        video.addEventListener("timeupdate", function() {
+            if (this.currentTime >= endtime) {
+                this.currentTime = starttime; // change time index here
+            }
+        }, false);
     }
     return true;
 }
@@ -175,7 +214,7 @@ function display3DModel() {
     // Model loader
     const plyloader = new THREE.PLYLoader();
     plyloader.load(
-        './models/Station.ply',
+        './models/240.ply',
         function (geometry) {
             geometry.center();
             const material = new THREE.PointsMaterial( { size: 0.1, vertexColors: true } );
@@ -238,7 +277,7 @@ function rotateModel(sequence) {
 </script>
 <body>
     <div id="container">
-        <div id="icon" onclick="playAudio()"><img src="./images/play.png" /></div>
+        <div id="icon" onclick="playAudio()"><img id="icon-img" src="./images/play.png" /></div>
         <button id="backBtn" class="backBtn" onclick="onSkip(-1);" style="display:none;">BACK</button>
         <div id="loader-bar" class="loader-bar"></div>
         <button id="skipBtn" class="skipBtn" onclick="onSkip(1);">SKIP</button>
