@@ -3,9 +3,9 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="./style.css?abc">
-    <script src="https://threejs.org/build/three.js"></script>
-    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://threejs.org/examples/js/loaders/PLYLoader.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/three.js/108/three.min.js'></script>
+    <script src="https://82mou.github.io/threejs/js/OrbitControls.js"></script>
+    <script src='https://cdn.jsdelivr.net/gh/mrdoob/three.js@r92/examples/js/loaders/PLYLoader.js'></script>
 </head>
 <script>
 let mesh, renderer, scene, camera, controls, x, y, axesHelper;
@@ -26,6 +26,9 @@ const PAGE_CONTENT = [
         <video autoplay muted playsinline loop id="page-2-video">
             <source src="./videos/page-2.mp4" type="video/mp4">
         </video>
+        <audio loop id="page-2-audio">
+            <source src="./videos/music/page-1.mp3" type="audio/mpeg">
+        </audio>
     </div>`,
     `<div id="page-3">
         <div id="center-object" class="center-object"></div>
@@ -37,11 +40,17 @@ const PAGE_CONTENT = [
             <img src="./images/third-page-05.jpg" onclick="rotateModel(5)" />
             <img src="./images/third-page-06.jpg" onclick="rotateModel(6)" />
         </div>
+        <audio loop id="page-3-audio">
+            <source src="./videos/music/page-1.mp3" type="audio/mpeg">
+        </audio>
     </div>`,
     `<div id="page-4">
         <video autoplay playsinline loop id="page-4-video">
             <source src="./videos/page-4.mp4" type="video/mp4">
         </video>
+        <audio loop id="page-2-audio">
+            <source src="./videos/music/page-1.mp3" type="audio/mpeg">
+        </audio>
     </div>`,
 ];
 
@@ -146,7 +155,6 @@ function onSkip(sequence) {
         document.getElementById('page-section').style.display = 'flex';
         document.getElementById('model-section').style.display = 'none';
         document.getElementById('page-section').innerHTML = PAGE_CONTENT[CURRENT_PAGE];
-
     }
 
     // Back在第二頁、第三頁和第四頁，Skip在第一頁和第二頁。
@@ -155,21 +163,36 @@ function onSkip(sequence) {
         document.getElementById('skipBtn').style.display = 'block';
         document.getElementById('infoBtn').style.display = 'none';
         document.getElementById('icon').style.display = 'block';
+        document.getElementById('icon-img').src = './images/play.png';
+        if (document.getElementById('page-2-audio')) {
+            document.getElementById('page-2-audio').pause();
+        }
+        if (document.getElementById('page-3-audio')) {
+            document.getElementById('page-3-audio').pause();
+        }
     } else if (CURRENT_PAGE == 1) {
         document.getElementById('backBtn').style.display = 'block';
         document.getElementById('skipBtn').style.display = 'block';
         document.getElementById('infoBtn').style.display = 'none';
         document.getElementById('icon').style.display = 'none';
+        if (document.getElementById('page-2-audio')) {
+            document.getElementById('page-2-audio').play();
+        }
+        if (document.getElementById('page-3-audio')) {
+            document.getElementById('page-3-audio').pause();
+        }
     } else if (CURRENT_PAGE == 2) {
         document.getElementById('backBtn').style.display = 'block';
         document.getElementById('skipBtn').style.display = 'none';
         document.getElementById('infoBtn').style.display = 'block';
         document.getElementById('icon').style.display = 'none';
+        document.getElementById('page-2-audio').pause();
+        document.getElementById('page-3-audio').play();
     } else if (CURRENT_PAGE == 3) {
         document.getElementById('backBtn').style.display = 'block';
         document.getElementById('skipBtn').style.display = 'none';
         document.getElementById('infoBtn').style.display = 'none';
-        document.getElementById('icon').style.display = 'none';
+        document.getElementById('page-3-audio').pause();
         // 第四頁先播放要重複撥放 29秒開始到結束的影片片段
         const video = document.querySelector('video');
         video.addEventListener("timeupdate", function() {
@@ -194,7 +217,7 @@ function display3DModel() {
     camera = new THREE.PerspectiveCamera( 45, w / h, 0.1, 1000 );
     camera.position.z = 75;
     // controls
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    // controls = new THREE.OrbitControls(camera, renderer.domElement);
     axesHelper = new THREE.AxesHelper(10);
     const colors = axesHelper.geometry.attributes.color;
     colors.setXYZ( 0, 1, 0, 0 ); // index, R, G, B
